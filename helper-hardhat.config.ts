@@ -4,6 +4,7 @@ export interface networkConfigItem {
 	votingDelay: number;
 	votingPeriod: number;
 	quorumPercentage: number;
+	storeValue: number;
 }
 
 export interface networkConfigInfo {
@@ -17,6 +18,7 @@ const networkConfig: networkConfigInfo = {
 		votingDelay: 1,
 		votingPeriod: 5,
 		quorumPercentage: 4,
+		storeValue: 10,
 	},
 	31337: {
 		minDelay: 3600,
@@ -24,6 +26,7 @@ const networkConfig: networkConfigInfo = {
 		votingDelay: 1,
 		votingPeriod: 5,
 		quorumPercentage: 4,
+		storeValue: 10,
 	},
 };
 

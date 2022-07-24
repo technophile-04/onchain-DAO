@@ -3,12 +3,13 @@ import { developmentChains, networkConfig } from '../helper-hardhat.config';
 import { Box, GovernorContract } from '../typechain-types';
 import { moveBlocks } from '../utils/moveBlock';
 import fs from 'fs';
+import { moveTime } from '../utils/moveTime';
 
 const chainId = network.config.chainId;
 
-const { storeValue, votingDelay } = networkConfig[chainId!];
+const { storeValue, votingDelay, minDelay } = networkConfig[chainId!];
 
-async function proposer(
+async function queueAndExecute(
 	args: any[],
 	functionToCall: string,
 	proposalDec: string
@@ -21,33 +22,40 @@ async function proposer(
 		functionToCall,
 		args
 	);
-	console.log(
-		`Proposing ${functionToCall} on ${box.address} with args ${args}`
+
+	const decHash = ethers.utils.keccak256(ethers.utils.toUtf8Bytes(proposalDec));
+
+	console.log('Queueing');
+
+	const queueTx = await governor.queue(
+		[box.address],
+		[0],
+		[encodedFunctionCallStore],
+		decHash
 	);
 
-	const proposeTx = await governor.propose(
+	await queueTx.wait(1);
+
+	if (developmentChains.includes(network.name)) {
+		await moveTime(minDelay + 1);
+		await moveBlocks(1, 1000);
+	}
+
+	console.log('Executing');
+	const executingTx = await governor.execute(
 		[box.address],
 		[0],
 		[encodedFunctionCallStore],
 		proposalDec
 	);
 
-	const proposeReceipt = await proposeTx.wait(1);
+	await executingTx.wait(1);
 
-	const proposeId = proposeReceipt.events![0].args?.proposalId;
-
-	let proposals = JSON.parse(fs.readFileSync('./proposals.json', 'utf-8'));
-
-	proposals[chainId!.toString()].push(proposeId.toString());
-
-	fs.writeFileSync('./proposals.json', JSON.stringify(proposals));
-
-	if (developmentChains.includes(network.name)) {
-		moveBlocks(votingDelay + 1, 1000);
-	}
+	const boxNewValue = await box.retrive();
+	console.log(boxNewValue.toString(), 'Box newValue');
 }
 
-proposer([storeValue], 'store', 'Store 10 in the box')
+queueAndExecute([storeValue], 'store', 'Store 10 in the box')
 	.then((result) => {
 		return process.exit(0);
 	})

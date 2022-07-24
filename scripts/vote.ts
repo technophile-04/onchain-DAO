@@ -23,9 +23,11 @@ async function main(proposalIndex: number) {
 
 	const reason = 'I like Messi';
 
-	const voterTxRes = await governor
-		.connect(secPlayer)
-		.castVoteWithReason(proposalId, voteAway, reason);
+	const voterTxRes = await governor.castVoteWithReason(
+		proposalId,
+		voteAway,
+		reason
+	);
 
 	const voteTxReceipt = await voterTxRes.wait(1);
 
@@ -34,7 +36,7 @@ async function main(proposalIndex: number) {
 	console.log(`Current Proposal State: ${proposalState}`);
 
 	if (developmentChains.includes(network.name)) {
-		moveBlocks(votingPeriod + 1, 1000);
+		await moveBlocks(votingPeriod + 1, 1000);
 	}
 
 	console.log('voted ready to go !');

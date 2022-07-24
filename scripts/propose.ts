@@ -33,7 +33,7 @@ async function proposer(
 	);
 
 	if (developmentChains.includes(network.name)) {
-		moveBlocks(votingDelay + 1, 1000);
+		await moveBlocks(votingDelay + 1, 1000);
 	}
 
 	const proposeReceipt = await proposeTx.wait(1);

@@ -47,7 +47,7 @@ async function queueAndExecute(
 		[box.address],
 		[0],
 		[encodedFunctionCallStore],
-		proposalDec
+		decHash
 	);
 
 	await executingTx.wait(1);

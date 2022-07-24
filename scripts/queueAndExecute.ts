@@ -2,7 +2,6 @@ import { ethers, network } from 'hardhat';
 import { developmentChains, networkConfig } from '../helper-hardhat.config';
 import { Box, GovernorContract } from '../typechain-types';
 import { moveBlocks } from '../utils/moveBlock';
-import fs from 'fs';
 import { moveTime } from '../utils/moveTime';
 
 const chainId = network.config.chainId;
@@ -41,6 +40,8 @@ async function queueAndExecute(
 		await moveBlocks(1, 1000);
 	}
 
+	console.log('Queued');
+
 	console.log('Executing');
 	const executingTx = await governor.execute(
 		[box.address],
@@ -55,7 +56,7 @@ async function queueAndExecute(
 	console.log(boxNewValue.toString(), 'Box newValue');
 }
 
-queueAndExecute([storeValue], 'store', 'Store 10 in the bo')
+queueAndExecute([storeValue], 'store', 'Store 10 in the box')
 	.then((result) => {
 		return process.exit(0);
 	})

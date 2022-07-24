@@ -32,19 +32,27 @@ async function proposer(
 		proposalDec
 	);
 
+	if (developmentChains.includes(network.name)) {
+		moveBlocks(votingDelay + 1, 1000);
+	}
+
 	const proposeReceipt = await proposeTx.wait(1);
 
 	const proposeId = proposeReceipt.events![0].args?.proposalId;
 
 	let proposals = JSON.parse(fs.readFileSync('./proposals.json', 'utf-8'));
 
+	const proposalState = await governor.state(proposeId);
+	const proposalSnapShot = await governor.proposalSnapshot(proposeId);
+	const proposalDeadline = await governor.proposalDeadline(proposeId);
+
 	proposals[chainId!.toString()].push(proposeId.toString());
 
 	fs.writeFileSync('./proposals.json', JSON.stringify(proposals));
 
-	if (developmentChains.includes(network.name)) {
-		moveBlocks(votingDelay + 1, 1000);
-	}
+	console.log(`Current Proposal State: ${proposalState}`);
+	console.log(`Current Proposal Snapshot: ${proposalSnapShot}`);
+	console.log(`Current Proposal Deadline: ${proposalDeadline}`);
 }
 
 proposer([storeValue], 'store', 'Store 10 in the box')

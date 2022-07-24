@@ -13,6 +13,8 @@ async function main(proposalIndex: number) {
 		'GovernorContract'
 	);
 
+	const secPlayer = (await ethers.getSigners())[1];
+
 	const proposals = JSON.parse(fs.readFileSync('./proposals.json', 'utf-8'));
 
 	const proposalId = proposals[chainId!][proposalIndex];
@@ -21,11 +23,9 @@ async function main(proposalIndex: number) {
 
 	const reason = 'I like Messi';
 
-	const voterTxRes = await governor.castVoteWithReason(
-		proposalId,
-		voteAway,
-		reason
-	);
+	const voterTxRes = await governor
+		.connect(secPlayer)
+		.castVoteWithReason(proposalId, voteAway, reason);
 
 	const voteTxReceipt = await voterTxRes.wait(1);
 

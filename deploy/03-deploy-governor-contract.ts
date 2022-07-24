@@ -15,6 +15,7 @@ const deployFunc: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
 
 	const { votingDelay, votingPeriod, quorumPercentage } =
 		networkConfig[chainId!];
+	log(`Quorum percentage is ${quorumPercentage}`);
 	const args = [
 		governanceToken.address,
 		timeLock.address,

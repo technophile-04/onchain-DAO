@@ -55,7 +55,7 @@ async function queueAndExecute(
 	console.log(boxNewValue.toString(), 'Box newValue');
 }
 
-queueAndExecute([storeValue], 'store', 'Store 10 in the box')
+queueAndExecute([storeValue], 'store', 'Store 10 in the bo')
 	.then((result) => {
 		return process.exit(0);
 	})

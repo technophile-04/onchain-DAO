@@ -1,35 +1,35 @@
+// Pricefeed addresses can be obtained at https://docs.chain.link/docs/reference-contracts
+// Default one is ETH / USD contract on Kovan
+
 export interface networkConfigItem {
-	blockConfirmations?: number;
-	minDelay: number;
-	votingDelay: number;
-	votingPeriod: number;
-	quorumPercentage: number;
-	storeValue: number;
-}
+    ethUsdPriceFeed?: string
+    blockConfirmations?: number
+  }
 
-export interface networkConfigInfo {
-	[key: number]: networkConfigItem;
-}
+  export interface networkConfigInfo {
+    [key: string]: networkConfigItem
+  }
 
-const networkConfig: networkConfigInfo = {
-	4: {
-		minDelay: 3600,
-		blockConfirmations: 6,
-		votingDelay: 1,
-		votingPeriod: 5,
-		quorumPercentage: 4,
-		storeValue: 10,
-	},
-	31337: {
-		minDelay: 3600,
-		blockConfirmations: 1,
-		votingDelay: 1,
-		votingPeriod: 5,
-		quorumPercentage: 4,
-		storeValue: 10,
-	},
-};
+  export const networkConfig: networkConfigInfo = {
+    localhost: {},
+    hardhat: {},
+    kovan: {
+      blockConfirmations: 6,
+    },
+  }
 
-const developmentChains = ['hardhat', 'localhost'];
+  export const developmentChains = ["hardhat", "localhost"]
+  export const proposalsFile = "proposals.json"
 
-export { networkConfig, developmentChains };
+  // Governor Values
+  export const QUORUM_PERCENTAGE = 4 // Need 4% of voters to pass
+  export const MIN_DELAY = 3600 // 1 hour -- after a vote passes, you have 1 hour before you can enact
+
+  // export const VOTING_PERIOD = 45818 -- 1 week -- how long the vote lasts. This is pretty long even for local tests
+  export const VOTING_PERIOD = 5 // Blocks
+  export const VOTING_DELAY = 1 // 1 Block -- How many blocks till a proposal vote becomes active
+  export const ADDRESS_ZERO = "0x0000000000000000000000000000000000000000"
+
+  export const NEW_STORE_VALUE = 77
+  export const FUNC = "store"
+  export const PROPOSAL_DESCRIPTION = "Proposal #1 77 in the Box!"

@@ -1,66 +1,50 @@
-import { ethers, network } from 'hardhat';
-import { developmentChains, networkConfig } from '../helper-hardhat.config';
-import { Box, GovernorContract } from '../typechain-types';
-import { moveBlocks } from '../utils/moveBlock';
-import { moveTime } from '../utils/moveTime';
+import { ethers, network } from "hardhat"
+import {
+  FUNC,
+  NEW_STORE_VALUE,
+  PROPOSAL_DESCRIPTION,
+  MIN_DELAY,
+  developmentChains,
+} from "../helper-hardhat-config"
+import { moveBlocks } from "../utils/move-blocks"
+import { moveTime } from "../utils/move-time"
 
-const chainId = network.config.chainId;
+export async function queueAndExecute() {
+  const args = [NEW_STORE_VALUE]
+  const functionToCall = FUNC
+  const box = await ethers.getContract("Box")
+  const encodedFunctionCall = box.interface.encodeFunctionData(functionToCall, args)
+  const descriptionHash = ethers.utils.keccak256(ethers.utils.toUtf8Bytes(PROPOSAL_DESCRIPTION))
+  // Alternative:
+  // Could also use ethers.utils.id(PROPOSAL_DESCRIPTION)
 
-const { storeValue, votingDelay, minDelay } = networkConfig[chainId!];
+  const governor = await ethers.getContract("GovernorContract")
+  console.log("Queueing...")
+  const queueTx = await governor.queue([box.address], [0], [encodedFunctionCall], descriptionHash)
+  await queueTx.wait(1)
 
-async function queueAndExecute(
-	args: any[],
-	functionToCall: string,
-	proposalDec: string
-) {
-	const governor: GovernorContract = await ethers.getContract(
-		'GovernorContract'
-	);
-	const box = await ethers.getContract('Box');
-	const encodedFunctionCallStore = box.interface.encodeFunctionData(
-		functionToCall,
-		args
-	);
+  if (developmentChains.includes(network.name)) {
+    await moveTime(MIN_DELAY + 1)
+    await moveBlocks(1)
+  }
 
-	const decHash = ethers.utils.keccak256(ethers.utils.toUtf8Bytes(proposalDec));
+  console.log("Executing...")
 
-	console.log('Queueing');
+  // This will fail on a testnet because you need to wait for the MIN_DELAY!
+  const executeTx = await governor.execute(
+    [box.address],
+    [0],
+    [encodedFunctionCall],
+    descriptionHash
+  )
 
-	const queueTx = await governor.queue(
-		[box.address],
-		[0],
-		[encodedFunctionCallStore],
-		decHash
-	);
-
-	await queueTx.wait(1);
-
-	if (developmentChains.includes(network.name)) {
-		await moveTime(minDelay + 1);
-		await moveBlocks(1, 1000);
-	}
-
-	console.log('Queued');
-
-	console.log('Executing');
-	const executingTx = await governor.execute(
-		[box.address],
-		[0],
-		[encodedFunctionCallStore],
-		decHash
-	);
-
-	await executingTx.wait(1);
-
-	const boxNewValue = await box.retrive();
-	console.log(boxNewValue.toString(), 'Box newValue');
+  await executeTx.wait(1)
+  console.log(`Box value: ${await box.retrieve()}`)
 }
 
-queueAndExecute([storeValue], 'store', 'Store 10 in the box')
-	.then((result) => {
-		return process.exit(0);
-	})
-	.catch((err) => {
-		console.log(err);
-		return process.exit(1);
-	});
+queueAndExecute()
+  .then(() => process.exit(0))
+  .catch((error) => {
+    console.error(error)
+    process.exit(1)
+  })
